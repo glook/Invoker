@@ -4,6 +4,7 @@ namespace Invoker\ParameterResolver\Container;
 
 use Interop\Container\ContainerInterface;
 use Invoker\ParameterResolver\ParameterResolver;
+use ReflectionClass;
 use ReflectionFunctionAbstract;
 
 /**
@@ -39,7 +40,13 @@ class TypeHintContainerResolver implements ParameterResolver
         }
 
         foreach ($parameters as $index => $parameter) {
-            $parameterClass = $parameter->getClass();
+			if (PHP_VERSION_ID > 80000) {
+				$parameterClass = $parameter->getType() && !$parameter->getType()->isBuiltin()
+					? new ReflectionClass($parameter->getType()->getName())
+					: null;
+			} else {
+				$parameterClass = $parameter->getClass();
+			}
 
             if ($parameterClass && $this->container->has($parameterClass->name)) {
                 $resolvedParameters[$index] = $this->container->get($parameterClass->name);

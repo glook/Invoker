@@ -1,6 +1,7 @@
 # Parameter resolvers
 
-Extending the behavior of the `Invoker` is easy and is done by implementing a [`ParameterResolver`](https://github.com/PHP-DI/Invoker/blob/master/src/ParameterResolver/ParameterResolver.php):
+Extending the behavior of the `Invoker` is easy and is done by implementing
+a [`ParameterResolver`](https://github.com/PHP-DI/Invoker/blob/master/src/ParameterResolver/ParameterResolver.php):
 
 ```php
 interface ParameterResolver
@@ -13,10 +14,13 @@ interface ParameterResolver
 }
 ```
 
-- `$providedParameters` contains the parameters provided by the user when calling `$invoker->call($callable, $parameters)`
+- `$providedParameters` contains the parameters provided by the user when
+  calling `$invoker->call($callable, $parameters)`
 - `$resolvedParameters` contains parameters that have already been resolved by other parameter resolvers
 
-An `Invoker` can chain multiple parameter resolvers to mix behaviors, e.g. you can mix "named parameters" support with "dependency injection" support. This is why a `ParameterResolver` should skip parameters that are already resolved in `$resolvedParameters`.
+An `Invoker` can chain multiple parameter resolvers to mix behaviors, e.g. you can mix "named parameters" support with "
+dependency injection" support. This is why a `ParameterResolver` should skip parameters that are already resolved
+in `$resolvedParameters`.
 
 Here is an implementation example for dumb dependency injection that creates a new instance of the classes type-hinted:
 
@@ -34,7 +38,13 @@ class MyParameterResolver implements ParameterResolver
                 continue;
             }
 
-            $class = $parameter->getClass();
+		if (PHP_VERSION_ID > 80000) {
+			$class = $parameter->getType() && !$parameter->getType()->isBuiltin()
+				? new ReflectionClass($parameter->getType()->getName())
+				: null;
+		} else {
+			$class = $parameter->getClass();
+		}
 
             if ($class) {
                 $resolvedParameters[$index] = $class->newInstance();
@@ -66,7 +76,10 @@ The fun starts to happen when we want to add support for many things:
 - dependency injection for type-hinted parameters
 - ...
 
-This is where we should use the [`ResolverChain`](https://github.com/PHP-DI/Invoker/blob/master/src/ParameterResolver/ResolverChain.php). This resolver implements the [Chain of responsibility](http://en.wikipedia.org/wiki/Chain-of-responsibility_pattern) design pattern.
+This is where we should use
+the [`ResolverChain`](https://github.com/PHP-DI/Invoker/blob/master/src/ParameterResolver/ResolverChain.php). This
+resolver implements the [Chain of responsibility](http://en.wikipedia.org/wiki/Chain-of-responsibility_pattern) design
+pattern.
 
 For example the default chain is:
 
@@ -95,7 +108,8 @@ $invoker->call(function ($title, $content, $published = true) {
 }, $parameters);
 ```
 
-We can put our custom parameter resolver in the list and created a super-duper invoker that also supports basic dependency injection:
+We can put our custom parameter resolver in the list and created a super-duper invoker that also supports basic
+dependency injection:
 
 ```php
 $parameterResolver = new ResolverChain([
