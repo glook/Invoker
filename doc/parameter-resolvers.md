@@ -38,7 +38,7 @@ class MyParameterResolver implements ParameterResolver
                 continue;
             }
 
-		if (PHP_VERSION_ID > 80000) {
+		if (PHP_VERSION_ID >= 80000) {
 			$class = $parameter->getType() && !$parameter->getType()->isBuiltin()
 				? new ReflectionClass($parameter->getType()->getName())
 				: null;
